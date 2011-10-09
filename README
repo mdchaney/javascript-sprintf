@@ -1,0 +1,122 @@
+By Michael Chaney, Michael Chaney Consulting Corporation
+Copyright 2005, Michael Chaney Consulting Corporation
+All rights not explicitly granted to you are reserved to the
+copyright holder.
+
+Released under terms of any of the following standard licenses:
+1. BSD (sans advertising clause)
+2. MIT
+3. Apache
+4. GPL v2 or GPL v3
+
+Implements a standard C99 sprintf function for use in JavaScript.
+Also includes the x$ constructs to allow parameter positions to be
+specified in the format string.  See below for formats that are
+specifically not implemented.  Please note that the unimplemented
+formats will throw errors (configurable).
+
+This understands the following constructs:
+%% - makes a percent sign
+* - use a param for width/precision
+  sprintf("%*d", width, num);
+%x$ - use param at position x for value to format
+*x$ - use param at position x for width or precision
+  sprintf("%2$*1$d", width, num);
+Note that if you use the x$ syntax, it must be used everywhere.
+Additionally, the parameters used for width or precision must be integers.
+
+Flags:
+# - alternate form (prepend "0" for octal "o", "0x" for hex "x" or "X",
+			always include the "." for floating formats
+		sprintf("%#x", 5) returns "0x5"
+		sprintf("%#f", 5) returns "5."
+		sprintf("%#o", 5) return "05"
+
+0 - zero padding for numerics.  Note that "-" and a precision will
+		take precedence and cause this to be ignored
+		sprintf("%03d", 5) returns "005"
+
+- - left justify the value within the width
+		sprintf("%-3d", 5) return "5  "
+
+' ' (space) - put a blank before a positive number or empty string
+		sprintf("% d", 5) returns " 5"
+		sprintf("% d", -5) returns "-5"
+
++ - always put the sign for a numeric format
+		sprintf("%+d", 5) returns "+5"
+		sprintf("%+d", -5) returns "-5"
+
+' - Show grouping for thousands - for signed conversions d, i, f, or g
+		sprintf("%'d", 5000000) returns "5,000,000"
+
+Format specification
+
+After the flags come the optional width & precision.  Either may be
+specified as "*" (use next param as value) or "*x$" (use param #x as
+value, based at "1" for first param).
+
+The "width" is the minimum field width.  The field will grow to
+accomodate larger data.
+The precision follows a "." after the width.  For integer
+formats, this is the minimum number of digits (0 padded on left).
+For floating point formats, this is the number of digits right of the
+decimal point.
+For string conversions, this is the maximum width of the string,
+further characters will be truncated.
+
+After width and precision come the conversion type:
+
+d, i - integer, precision defaults to "1".  If precision is "0", then
+		"0" will show nothing.
+u - unsigned integer, identical to "d" otherwise.  This does not deal
+			appropriately with negative numbers, it just chops the sign off.
+		sprintf("%d", 5) returns "5"
+
+o - unsigned integer - octal format
+		sprintf("%o", 16) returns "20"
+
+x, X - hexadecimal, using either lowercase or uppercase a-f
+		sprintf("%x", 16) returns "10"
+		sprintf("%X", 31) returns "1F"
+
+f, F - floating pont output.  precision default is "6".  At least one
+			digit is always shown before the decimal point.  No decimal
+			point is shown if precision is "0", unless the alternate flag
+			is set
+		sprintf("%.2f", 5) returns "5.00"
+		sprintf("%.0f", 5.5) returns "6"
+
+e, E - Scientific notation - precision determines how many digits are
+			shown after the decimal point, one is shown before it.  The
+			exponent is shown as two digits.  The case of the "e" is
+			determine by the case of the format specifier.
+		sprintf("%5.4e", 5000) returns "5.0000e+03"
+		sprintf("%5.0e", 39483) returns "4e+04"
+		sprintf("%.5E", .005) returns "5.00000E-03"
+
+g, G - Use f or e (F/E).  Basically, if the number of digits is less
+			than the precision, use "f", otherwise use "e".  Precision
+			defaults to 6.  Put another way, if the exponent is greater
+			than or equal to the precision, or less than "-4", use "e",
+			otherwise, use "f".
+
+c - integer argument is taken to be an ordinal character position,
+			and a single character is output.  Internally uses
+			String.fromCharCode
+		sprintf("%c", 65) returns "A"
+
+s - string.  "width" is the minimum width given for the string, and
+			"precision is the maximum width.
+
+
+Specifically not implemented:
+
+"length" modifier - This doesn't really make sense in a weakly typed
+language like JavaScript.  These are "hh", "h", "l", "ll", "L", "q",
+"j", "z", "t".  They are simply ignored.
+
+Formats "a", "A", "C", "S", "P", and "n" are not implemented and will
+specifically throw an error.  Look below for
+throw_error_on_unimplemented_formats to change this.
+
